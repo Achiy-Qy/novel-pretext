@@ -1,0 +1,14 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "dev": "npx serve . -p 3000"
+  },
+  "dependencies": {
+    "@chenglou/pretext": "^1.0.0"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}

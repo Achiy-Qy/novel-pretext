@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pretext 环绕布局测试</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        --bg: #f5f0e8;
+        --ink: #221a10;
+        --ink-muted: rgba(34, 26, 16, 0.42);
+        --sidebar-item-bg: rgba(34, 26, 16, 0.07);
+        --sidebar-item-hover: rgba(34, 26, 16, 0.13);
+        --swatch-active-border: rgba(34, 26, 16, 0.55);
+        background: var(--bg);
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        padding: 48px 32px;
+        gap: 32px;
+        min-height: 100vh;
+        font-family: "Source Han Serif CN", "Noto Serif CJK SC", "STSong", "SimSun", serif;
+        transition: background 0.3s ease;
+      }
+
+      body.theme-blue {
+        --bg: #e8eff5;
+        --ink: #0f1f2e;
+        --ink-muted: rgba(15, 31, 46, 0.42);
+        --sidebar-item-bg: rgba(15, 31, 46, 0.07);
+        --sidebar-item-hover: rgba(15, 31, 46, 0.13);
+        --swatch-active-border: rgba(15, 31, 46, 0.55);
+      }
+
+      body.theme-dark {
+        --bg: #1c1710;
+        --ink: #e4d9c4;
+        --ink-muted: rgba(228, 217, 196, 0.42);
+        --sidebar-item-bg: rgba(228, 217, 196, 0.08);
+        --sidebar-item-hover: rgba(228, 217, 196, 0.14);
+        --swatch-active-border: rgba(228, 217, 196, 0.6);
+      }
+
+      /* ── Sidebar ─────────────────────────────────────────────────────────── */
+
+      .sidebar {
+        width: 156px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+
+      .sidebar-section {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+
+      .sidebar-label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: var(--ink-muted);
+        text-transform: uppercase;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 500;
+      }
+
+      .btn-sidebar {
+        background: var(--sidebar-item-bg);
+        border: none;
+        border-radius: 7px;
+        padding: 8px 12px;
+        font-size: 13px;
+        cursor: pointer;
+        font-family: inherit;
+        color: var(--ink);
+        text-align: left;
+        transition: background 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        line-height: 1.3;
+        width: 100%;
+      }
+
+      .btn-sidebar:hover { background: var(--sidebar-item-hover); }
+
+      .btn-sidebar .icon {
+        font-style: normal;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .file-status {
+        display: none;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .file-status.visible { display: flex; }
+
+      .file-status-name {
+        font-size: 11px;
+        color: var(--ink-muted);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .btn-delete {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--ink-muted);
+        font-size: 14px;
+        line-height: 1;
+        padding: 2px 4px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        transition: color 0.12s, background 0.12s;
+      }
+
+      .btn-delete:hover {
+        color: var(--ink);
+        background: var(--sidebar-item-bg);
+      }
+
+      /* sliders */
+      .slider-row {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .slider-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+
+      .slider-label-text {
+        font-size: 11px;
+        color: var(--ink-muted);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+
+      .slider-value {
+        font-size: 11px;
+        color: var(--ink-muted);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        min-width: 24px;
+        text-align: right;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+        accent-color: var(--ink);
+        height: 3px;
+      }
+
+      /* color swatches */
+      .color-swatches {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+      }
+
+      .color-swatch {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: transform 0.12s, box-shadow 0.15s;
+        outline: none;
+        flex-shrink: 0;
+      }
+
+      .color-swatch:hover { transform: scale(1.15); }
+
+      .swatch-cream { background: #f5f0e8; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12); }
+      .swatch-blue  { background: #e8eff5; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10); }
+      .swatch-dark  { background: #1c1710; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12); }
+
+      .swatch-cream.active { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(34,26,16,0.45); }
+      .swatch-blue.active  { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(15,31,46,0.45); }
+      .swatch-dark.active  { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(228,217,196,0.5); }
+
+      .sidebar-footer {
+        padding-top: 8px;
+        border-top: 1px solid var(--sidebar-item-bg);
+        font-size: 10px;
+        color: var(--ink-muted);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        letter-spacing: 0.06em;
+      }
+
+      /* ── Main area ───────────────────────────────────────────────────────── */
+
+      .main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+      }
+
+      .container {
+        position: relative;
+        width: 620px;
+      }
+
+      .float-image {
+        position: absolute;
+        border-radius: 6px;
+        cursor: grab;
+        z-index: 2;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+        user-select: none;
+      }
+
+      .float-image:active { cursor: grabbing; }
+
+      .float-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(145deg, #c4a07c, #7a5533);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 11px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .float-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .line {
+        position: absolute;
+        white-space: pre;
+        color: var(--ink);
+        pointer-events: none;
+        transition: color 0.3s ease;
+      }
+
+      .hint {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(30, 20, 10, 0.88);
+        color: rgba(245, 240, 232, 0.9);
+        font-size: 12px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        padding: 8px 18px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+        pointer-events: none;
+        letter-spacing: 0.04em;
+      }
+
+      input[type="file"] { display: none; }
+    </style>
+  </head>
+  <body>
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+
+      <!-- 图片 -->
+      <div class="sidebar-section">
+        <span class="sidebar-label">图片</span>
+        <button class="btn-sidebar" id="btnUpload">
+          <i class="icon">↑</i>上传图片
+        </button>
+        <div class="file-status" id="imgStatus">
+          <span class="file-status-name" id="imgName"></span>
+        </div>
+        <input type="file" accept="image/*" id="fileInput" />
+      </div>
+
+      <!-- 文字 -->
+      <div class="sidebar-section">
+        <span class="sidebar-label">文字</span>
+        <button class="btn-sidebar" id="btnTxt">
+          <i class="icon">↑</i>上传文字
+        </button>
+        <div class="file-status" id="txtStatus">
+          <span class="file-status-name" id="txtName"></span>
+          <button class="btn-delete" id="btnDeleteTxt" title="恢复默认">×</button>
+        </div>
+        <input type="file" accept=".txt,text/plain" id="txtInput" />
+
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-label-text">字号</span>
+            <span class="slider-value" id="fontSizeVal">18</span>
+          </div>
+          <input type="range" id="fontSizeSlider" min="12" max="32" value="18" step="1" />
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-label-text">左右边界</span>
+            <span class="slider-value" id="marginVal">0</span>
+          </div>
+          <input type="range" id="marginSlider" min="0" max="200" value="0" step="4" />
+        </div>
+      </div>
+
+      <!-- 背景 -->
+      <div class="sidebar-section">
+        <span class="sidebar-label">背景</span>
+        <div class="color-swatches">
+          <button class="color-swatch swatch-cream active" data-theme="" title="暖奶油"></button>
+          <button class="color-swatch swatch-blue"  data-theme="theme-blue" title="冷蓝灰"></button>
+          <button class="color-swatch swatch-dark"  data-theme="theme-dark" title="暗夜"></button>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">基于 pretext</div>
+    </aside>
+
+    <!-- ── Main content ───────────────────────────────────────────────────── -->
+    <div class="main">
+      <div class="container" id="container">
+        <div class="float-image" id="floatImg">
+          <div class="float-image-placeholder" id="placeholder">拖动图片</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">拖动图片，文字将实时环绕布局</p>
+
+    <script type="module">
+      import { prepareWithSegments, layoutNextLine } from './node_modules/@chenglou/pretext/dist/layout.js'
+
+      // ── Constants ────────────────────────────────────────────────────────────
+      const FONT_FAMILY   = '"Source Han Serif CN", "Noto Serif CJK SC", "STSong", "SimSun", serif'
+      const IMG_PAD       = 14  // gap between image and text
+      const MIN_COL_WIDTH = 52  // narrower than this → skip that slot
+      const DEFAULT_IMG_W = 170
+      const DEFAULT_IMG_H = 170
+
+      const DEFAULT_TEXT =
+        '青春是一场谎言、一种罪恶。\n\n' +
+        '歌颂青春者往往欺骗自己与周遭的人。正面看待自身所处环境之一切。\n\n' +
+        '就算犯下什么滔天大错，他们也视之为青春的象征，刻划为记忆中的一页。\n\n' +
+        '举例来说，若是他们犯下偷窃，参加暴走族等罪行，便说那是「年少轻狂」；如果考试不及格，就辩称学校不是死读书的地方。\n\n' +
+        '只要举着青春的大旗，不管再稀松平常的道理还是社会观念，他们都有办法曲解。对他们而言，谎言、秘密、罪过，甚至是失败，都不过是青春的调味料罢了。\n\n' +
+        '再者，他们能从那些罪恶、那些失败中找出特殊之处。\n\n' +
+        '因此，他们一切的失败都算是青春的一部分。\n\n' +
+        '可是，别人的失败不能算是青春，而是单纯的失败。\n\n' +
+        '如果说失败是青春的象征，交不到朋友的人，不就处于青春的最高峰吗？\n\n' +
+        '然而，他们不会这么认为吧。\n\n' +
+        '说穿了，他们只挑对自己有利的解释。\n\n' +
+        '那样已经算是欺骗吧？\n\n' +
+        '不论是说谎、欺骗、隐瞒还是诈欺，都必须受到谴责。\n\n' +
+        '他们是罪恶的。\n\n' +
+        '反过来说，不歌颂青春的人才是真正的正义。\n\n' +
+        '结论就是：\n\n' +
+        '现实充通通给我爆炸吧！\n\n'
+
+      // ── Mutable state ────────────────────────────────────────────────────────
+      let currentText = DEFAULT_TEXT
+      let fontSize    = 18
+      let lineHeight  = Math.round(fontSize * 1.78)
+      let leftPad     = 0
+      let rightPad    = 0
+      let IMG_W       = DEFAULT_IMG_W
+      let IMG_H       = DEFAULT_IMG_H
+      let imgX        = 420
+      let imgY        = 12
+      let prepared    = null
+
+      // ── DOM refs ─────────────────────────────────────────────────────────────
+      const container      = document.getElementById('container')
+      const floatImg       = document.getElementById('floatImg')
+      const placeholder    = document.getElementById('placeholder')
+      const btnUpload      = document.getElementById('btnUpload')
+      const fileInput      = document.getElementById('fileInput')
+      const imgStatus      = document.getElementById('imgStatus')
+      const imgName        = document.getElementById('imgName')
+      const btnTxt         = document.getElementById('btnTxt')
+      const txtInput       = document.getElementById('txtInput')
+      const txtStatus      = document.getElementById('txtStatus')
+      const txtName        = document.getElementById('txtName')
+      const btnDeleteTxt   = document.getElementById('btnDeleteTxt')
+      const fontSizeSlider = document.getElementById('fontSizeSlider')
+      const fontSizeVal    = document.getElementById('fontSizeVal')
+      const marginSlider   = document.getElementById('marginSlider')
+      const marginVal      = document.getElementById('marginVal')
+
+      // ── Helpers ──────────────────────────────────────────────────────────────
+      function getFont() {
+        return `${fontSize}px ${FONT_FAMILY}`
+      }
+
+      function rePrepare() {
+        prepared = prepareWithSegments(currentText, getFont(), { whiteSpace: 'pre-wrap' })
+      }
+
+      // ── Init ─────────────────────────────────────────────────────────────────
+      floatImg.style.width  = DEFAULT_IMG_W + 'px'
+      floatImg.style.height = DEFAULT_IMG_H + 'px'
+      floatImg.style.left   = imgX + 'px'
+      floatImg.style.top    = imgY + 'px'
+
+      await document.fonts.ready
+      rePrepare()
+
+      // ── Layout ───────────────────────────────────────────────────────────────
+      let lineSpans = []
+
+      function syncPool(count) {
+        while (lineSpans.length < count) {
+          const el = document.createElement('span')
+          el.className = 'line'
+          container.appendChild(el)
+          lineSpans.push(el)
+        }
+        while (lineSpans.length > count) {
+          lineSpans.pop().remove()
+        }
+      }
+
+      function reflow() {
+        const font       = getFont()
+        const containerW = container.offsetWidth
+        const textStart  = leftPad
+        const textEnd    = containerW - rightPad
+        const textW      = Math.max(0, textEnd - textStart)
+
+        const imgLeft   = imgX
+        const imgRight  = imgX + IMG_W
+        const imgBottom = imgY + IMG_H
+
+        // Widths of the two slots alongside the image
+        const leftW  = imgLeft   - IMG_PAD - textStart
+        const rightW = textEnd   - (imgRight + IMG_PAD)
+        const hasLeft  = leftW  >= MIN_COL_WIDTH
+        const hasRight = rightW >= MIN_COL_WIDTH
+
+        let cursor = { segmentIndex: 0, graphemeIndex: 0 }
+        const lines = []
+
+        // ── Phase 1: rows above the image (full width) ───────────────────────
+        let y = 0
+        while (y + lineHeight <= imgY) {
+          const line = layoutNextLine(prepared, cursor, textW)
+          if (line === null) { finalize(lines, y); return }
+          lines.push({ x: textStart, y, text: line.text, font })
+          cursor = line.end
+          y += lineHeight
+        }
+
+        // ── Phase 2: rows alongside the image ───────────────────────────────
+        const imgRowStart = y
+        let numRows = 0
+        let ty = imgRowStart
+        while (ty < imgBottom) { numRows++; ty += lineHeight }
+
+        if (hasLeft && hasRight) {
+          // Both sides have enough space → fill left column first, then right
+          let leftCursor = cursor
+          for (let i = 0; i < numRows; i++) {
+            const line = layoutNextLine(prepared, leftCursor, leftW)
+            if (line === null) break
+            lines.push({ x: textStart, y: imgRowStart + i * lineHeight, text: line.text, font })
+            leftCursor = line.end
+          }
+          let rightCursor = leftCursor
+          for (let i = 0; i < numRows; i++) {
+            const line = layoutNextLine(prepared, rightCursor, rightW)
+            if (line === null) break
+            lines.push({ x: imgRight + IMG_PAD, y: imgRowStart + i * lineHeight, text: line.text, font })
+            rightCursor = line.end
+          }
+          cursor = rightCursor
+
+        } else if (hasLeft) {
+          for (let i = 0; i < numRows; i++) {
+            const line = layoutNextLine(prepared, cursor, leftW)
+            if (line === null) break
+            lines.push({ x: textStart, y: imgRowStart + i * lineHeight, text: line.text, font })
+            cursor = line.end
+          }
+
+        } else if (hasRight) {
+          for (let i = 0; i < numRows; i++) {
+            const line = layoutNextLine(prepared, cursor, rightW)
+            if (line === null) break
+            lines.push({ x: imgRight + IMG_PAD, y: imgRowStart + i * lineHeight, text: line.text, font })
+            cursor = line.end
+          }
+          // no space at all: cursor stays, text resumes below image
+        }
+
+        y = imgRowStart + numRows * lineHeight
+
+        // ── Phase 3: rows below the image (full width) ───────────────────────
+        while (true) {
+          const line = layoutNextLine(prepared, cursor, textW)
+          if (line === null) break
+          lines.push({ x: textStart, y, text: line.text, font })
+          cursor = line.end
+          y += lineHeight
+        }
+
+        // ── Commit to DOM ────────────────────────────────────────────────────
+        syncPool(lines.length)
+        for (let i = 0; i < lines.length; i++) {
+          const { x, y: top, text, font: f } = lines[i]
+          const span = lineSpans[i]
+          span.textContent      = text
+          span.style.left       = x + 'px'
+          span.style.top        = top + 'px'
+          span.style.font       = f
+          span.style.lineHeight = lineHeight + 'px'
+        }
+        container.style.minHeight = (y + 48) + 'px'
+      }
+
+      reflow()
+
+      // ── Upload image ─────────────────────────────────────────────────────────
+      btnUpload.addEventListener('click', () => fileInput.click())
+
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0]
+        if (!file) return
+
+        const objectUrl = URL.createObjectURL(file)
+        let imgTag = floatImg.querySelector('img')
+        if (!imgTag) {
+          imgTag = document.createElement('img')
+          imgTag.alt = ''
+          floatImg.appendChild(imgTag)
+        }
+        imgTag.onload = () => {
+          const MAX = 280
+          const scale = Math.min(1, MAX / Math.max(imgTag.naturalWidth, imgTag.naturalHeight))
+          IMG_W = Math.round(imgTag.naturalWidth  * scale)
+          IMG_H = Math.round(imgTag.naturalHeight * scale)
+          floatImg.style.width  = IMG_W + 'px'
+          floatImg.style.height = IMG_H + 'px'
+          placeholder.style.display = 'none'
+          reflow()
+        }
+        imgTag.src = objectUrl
+        imgName.textContent = file.name
+        imgStatus.classList.add('visible')
+
+        try {
+          const fh = await window.showSaveFilePicker({
+            suggestedName: file.name,
+            startIn: 'pictures',
+            types: [{ description: '图片文件', accept: { [file.type || 'image/*']: ['.jpg','.jpeg','.png','.gif','.webp','.bmp'] } }]
+          })
+          const w = await fh.createWritable()
+          await w.write(file)
+          await w.close()
+        } catch (err) {
+          if (err.name !== 'AbortError') console.warn('保存图片失败:', err)
+        }
+        fileInput.value = ''
+      })
+
+      // ── Upload txt ───────────────────────────────────────────────────────────
+      btnTxt.addEventListener('click', () => txtInput.click())
+
+      txtInput.addEventListener('change', () => {
+        const file = txtInput.files[0]
+        if (!file) return
+        const reader = new FileReader()
+        reader.onload = e => {
+          currentText = e.target.result || DEFAULT_TEXT
+          rePrepare()
+          reflow()
+          txtName.textContent = file.name
+          txtStatus.classList.add('visible')
+        }
+        reader.readAsText(file, 'UTF-8')
+        txtInput.value = ''
+      })
+
+      btnDeleteTxt.addEventListener('click', () => {
+        currentText = DEFAULT_TEXT
+        rePrepare()
+        reflow()
+        txtStatus.classList.remove('visible')
+        txtName.textContent = ''
+      })
+
+      // ── Font size slider ─────────────────────────────────────────────────────
+      fontSizeSlider.addEventListener('input', () => {
+        fontSize   = Number(fontSizeSlider.value)
+        lineHeight = Math.round(fontSize * 1.78)
+        fontSizeVal.textContent = fontSize
+        rePrepare()
+        reflow()
+      })
+
+      // ── Margin slider ────────────────────────────────────────────────────────
+      marginSlider.addEventListener('input', () => {
+        leftPad = rightPad = Number(marginSlider.value)
+        marginVal.textContent = leftPad
+        reflow()
+      })
+
+      // ── Background color swatches ────────────────────────────────────────────
+      const swatches = document.querySelectorAll('.color-swatch')
+      swatches.forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          swatches.forEach(s => s.classList.remove('active'))
+          swatch.classList.add('active')
+          document.body.className = swatch.dataset.theme
+        })
+      })
+
+      // ── Drag ─────────────────────────────────────────────────────────────────
+      let dragging = false
+      let dragOffX = 0
+      let dragOffY = 0
+
+      floatImg.addEventListener('pointerdown', e => {
+        dragging = true
+        dragOffX = e.clientX - imgX
+        dragOffY = e.clientY - imgY
+        floatImg.setPointerCapture(e.pointerId)
+        e.preventDefault()
+      })
+
+      floatImg.addEventListener('pointermove', e => {
+        if (!dragging) return
+        imgX = Math.max(0, Math.min(container.offsetWidth - IMG_W, e.clientX - dragOffX))
+        imgY = Math.max(0, e.clientY - dragOffY)
+        floatImg.style.left = imgX + 'px'
+        floatImg.style.top  = imgY + 'px'
+        reflow()
+      })
+
+      floatImg.addEventListener('pointerup', () => { dragging = false })
+
+      window.addEventListener('resize', reflow)
+    </script>
+  </body>
+</html>
